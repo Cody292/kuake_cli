@@ -59,7 +59,10 @@ func NewQuarkClient(configPath string, cookies ...string) *QuarkClient {
 		failedTokens:     make(map[int]bool),
 		Debug:            isDebugEnv, // 从环境变量读取，默认关闭
 		HttpClient: &http.Client{
-			Timeout: 30 * time.Second, // 普通 API 请求的超时时间，上传请求使用动态超时
+			// 注意：不设置全局 Timeout！
+			// Go 的 http.Client.Timeout 是硬限制，会覆盖 per-request 的 context.WithTimeout。
+			// 上传分片（upPart）使用 context.WithTimeout(30分钟) 控制超时，
+			// 如果这里设了 30 秒，大分片上传会被强制截断。
 		},
 	}
 	// 解析 cookie
